@@ -90,6 +90,7 @@ a {
 body {
     width: 100vw;
     background-color: var(--white);
+    user-select: none;
 }
 
 h1, h2, h3, h4, h5, h6, p, a {
@@ -100,7 +101,7 @@ h1, h2, h3, h4, h5, h6, p, a {
 /* #ROOT */
 /*======================*/
 
-#root {
+#grid-one-col {
     width: 100vw;
     display: grid;
     position: relative;
@@ -147,10 +148,6 @@ header #icon-wrapper {
     align-items: center;
 }
 
-header #x {
-    display: none;
-}
-
 /*======================*/
 /* MAIN */
 /*======================*/
@@ -189,7 +186,6 @@ nav {
     z-index: 60;
     background-color: var(--white);
     padding: var(--s-4);
-    display: none;
 }
 
 nav ul {
@@ -224,5 +220,12 @@ nav ul li a {
     opacity: 50%;
     background-color: var(--black);
     z-index: 50;
+}
+
+/*======================*/
+/* UTILITY */
+/*======================*/
+
+*.hidden {
     display: none;
 }
