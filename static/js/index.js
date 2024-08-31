@@ -59,7 +59,7 @@ class XerusLib {
         }
     }
 
-    scan(selector) {
+    scan(selector, rootName="root") {
         let element = this.qs(selector)
         let scan = element.getAttribute('scan')
         if (!scan || scan == "") {
@@ -84,7 +84,7 @@ class XerusLib {
             let scanName = scanChars.join('')
             elements[scanName] = scanElement
         }
-        elements.root = element
+        elements[rootName] = element
         return elements
     }
 
@@ -198,10 +198,22 @@ function toggleNav(next) {
     }
 } 
 
-app.use("/", toggleNav)
+// app.use("/", toggleNav)
 
-app.at("/", () => {})
+app.at("/", () => {
+    let { form, uploadButton, hiddenButton } = lib.scan('#receipt-form', 'form')
+    uploadButton.addEventListener('click', () => {
+        hiddenButton.click()
+    })
+    form.addEventListener('submit', (e) => {
+        console.log(form)
+    })
+})
 app.at("/about", () => {})
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await app.run()
+})
 
 
 

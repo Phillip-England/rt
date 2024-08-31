@@ -1,35 +1,83 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
 
+	g "github.com/Phillip-England/gsc"
 	"github.com/Phillip-England/vbf"
 )
 
-const KEY_TEMPLATES = "TEMPLATES"
+func IconBars() g.Component {
+	return g.Svg().Aria("hidden", "true").Xmlns("http://www.w3.org/2000/svg").Height("24").Width("24").Fill("none").ViewBox("0 0 24 24").In(
+		g.Path().Stroke("currentColor").StrokeLineCap("round").StrokeWidth("2").D("M5 7h14M5 12h14M5 17h14"),
+	)
+}
+
+func IconX() g.Component {
+	return g.Svg().Aria("hidden", "true").Xmlns("http://www.w3.org/2000/svg").Height("24").Width("24").Fill("none").ViewBox("0 0 24 24").In(
+		g.Path().Stroke("currentColor").StrokeLineCap("round").StrokeLineJoin("round").StrokeWidth("2").D("M6 18L17.94 6M18 18L6.06 6"),
+	)
+}
+
+func FormTextInput(label string) g.Component {
+	return g.Div().Class("flex flex-col gap-2").In(
+		g.Label().Class("text-sm").Text(label),
+		g.Input().Class("border rounded outline-none text-sm px-2 py-1 focus:border-gray-300").Type("text"),
+	)
+}
+
+func FormTextArea(label string) g.Component {
+	return g.Div().Class("flex flex-col gap-2").In(
+		g.Label().Class("text-sm").Text(label),
+		g.Textarea().Class("border rounded text-sm px-2 py-1").Attr("rows", "4"),
+	)
+}
+
+func FormTitle(text string) g.Component {
+	return g.H2().Class("text-xl font-bold").Text(text)
+}
+
+func Layout() g.Component {
+	return g.HTMLDoc().In(
+		g.Head().In(
+			g.Meta().Name("viewport").Content("width=device-width, initial-scale=1.0"),
+			g.Link().Rel("stylesheet").Href("/static/css/output.css"),
+			g.Script().Src("/static/js/index.js"),
+			g.Title().Text("Receipt Tracker"),
+		),
+		g.Body().In(
+			g.Div().Class("grid grid-cols-8").In(
+				g.Header().Class("border-b h-[85px] p-4 flex flex-row justify-between items-center col-span-8").In(
+					g.Div().Class("flex flex-col gap-1").In(
+						g.H1().Class("text-xl font-bold").Text("Receipt Tracker"),
+						g.P().Class("text-sm").Text("Where's my money?"),
+					),
+				),
+				g.Main().Class("col-start-1 col-end-9 p-2").In(
+					g.Form().Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("p-4 rounded flex flex-col gap-8").In(
+						FormTitle("Upload Receipts"),
+						FormTextInput("First Name"),
+						FormTextInput("Last Name"),
+						FormTextArea("What are these expenses for?"),
+						g.Input().Type("button").ID("upload-button").Class("bg-light-blue text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
+						g.Input().Type("file").Class("hidden").ID("hidden-button"),
+						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
+					),
+				),
+			),
+		),
+	)
+}
 
 func main() {
 
-	mux, g := vbf.VeryBestFramework()
+	mux, gCtx := vbf.VeryBestFramework()
 
-	t, err := vbf.ParseTemplates("./templates")
-	if err != nil {
-		panic(err)
-	}
-
-	vbf.SetGlobalContext(g, KEY_TEMPLATES, t)
-
-	vbf.AddRoute("GET /", mux, g, func(w http.ResponseWriter, r *http.Request) {
-		t, _ := vbf.GetContext(KEY_TEMPLATES, r).(*template.Template)
-		vbf.ExecuteTemplate(w, t, "layout.html", map[string]interface{}{
-			"Title":      "Receipt Tracker",
-			"HeaderText": "Receipt Tracker",
-			"SubText":    "where's my money?",
-		})
+	vbf.AddRoute("GET /", mux, gCtx, func(w http.ResponseWriter, r *http.Request) {
+		vbf.WriteHTML(w, Layout().ToString())
 	}, vbf.MwLogger)
 
-	err = vbf.Serve(mux, "8080")
+	err := vbf.Serve(mux, "8080")
 	if err != nil {
 		panic(err)
 	}
