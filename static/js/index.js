@@ -59,33 +59,40 @@ class XerusLib {
         }
     }
 
-    scan(selector, rootName="root") {
-        let element = this.qs(selector)
-        let scan = element.getAttribute('scan')
-        if (!scan || scan == "") {
-            console.error(`element with selector ${selector} does not hav a scan attribtue scan=''`)
+    selectorToName(selector, removePrefix=false) {
+        let chars = selector.split('');
+        for (let i = 0; i < chars.length; i++) {
+            let char = chars[i];
+            if (char === '-') {
+                chars[i + 1] = chars[i + 1].toUpperCase();
+                chars.splice(i, 1);
+            }
         }
-        let scanSplit = scan.split(' ')
-        let elements = {}
+        if (removePrefix) {
+            if (chars[0] === '#' || chars[0] === '.') {
+                chars.splice(0, 1);
+            }
+        }
+        return chars.join('');
+    }
+    
+    scan(selector, rootName = "root") {
+        let element = this.qs(selector);
+        let scan = element.getAttribute('scan');
+        if (!scan || scan === "") {
+            console.error(`Element with selector ${selector} does not have a scan attribute scan=''`);
+            return;
+        }
+        let scanSplit = scan.split(' ');
+        let elements = {};
         for (let i = 0; i < scanSplit.length; i++) {
-            let scanSelector = scanSplit[i]
-            let scanElement = this.qs(scanSelector, element)
-            let scanChars = scanSelector.split('')
-            for (let i2 = 0; i2 < scanChars.length; i2++) {
-                let char = scanChars[i2]
-                if (char == "-") {
-                    scanChars[i2+1] = scanChars[i2+1].toUpperCase()
-                    scanChars.splice(i2, 1)
-                }
-            }
-            if (scanChars[0] == "#" || scanChars[0] == ".") {
-                scanChars.splice(0, 1)
-            }
-            let scanName = scanChars.join('')
-            elements[scanName] = scanElement
+            let scanSelector = scanSplit[i];
+            let scanElement = this.qs(scanSelector, element);
+            let scanName = this.selectorToName(scanSelector, true);
+            elements[scanName] = scanElement;
         }
-        elements[rootName] = element
-        return elements
+        elements[rootName] = element;
+        return elements;
     }
 
     massToggle(classes, ...elements) {
@@ -103,6 +110,54 @@ class XerusLib {
             let elm = elements[i]
             elm.addEventListener(eventType, event)
         }
+    }
+
+    arrayForEach(array, callback) {
+        for (let i = 0; i < array.length; i++) {
+            callback(array[i])
+        }
+    }
+
+    formInputs(form) {
+        let inputs = this.qsa('[name]', form)
+        let output = {}
+        this.arrayForEach(inputs, (input) => {
+            let name = input.getAttribute('name')
+            let jsName = this.selectorToName(name)
+            output[jsName] = input
+        })
+        return output
+    }
+
+    formValues(form) {
+        let inputs = this.qsa('[name]', form)
+        let output = {}
+        this.arrayForEach(inputs, (input) => {
+            let name = input.getAttribute('name')
+            let jsName = this.selectorToName(name)
+            output[jsName] = input.value
+        })
+        return output
+    }
+
+    fileInputOnChange(fileInput, onChange) {
+        fileInput.addEventListener('change', (e) => {
+            // e.preventDefault()
+            let input = e.target
+            let file = input.files[0]
+            let canvas = document.createElement('canvas')
+            canvas.classList.add('flex')
+            let reader = new FileReader()
+            reader.onload = function(readerEvent) {
+                const img = new Image()
+                let ctx = canvas.getContext('2d')
+                img.onload = function() {
+                    onChange(e, canvas, ctx, img, file)
+                }
+                img.src = readerEvent.target.result
+            }
+            reader.readAsDataURL(file)
+        })
     }
 
 }
@@ -204,14 +259,76 @@ function toggleNav(next) {
 } 
 
 
+
 app.use("GLOBAL")
 
 app.at("/", () => {
+    let {form, uploadButton, hiddenButton, photoContainer} = lib.scan("#receipt-form", "form")
 
+    uploadButton.addEventListener('click', () => {
+        hiddenButton.click()
+    })
+
+    let files = []
+    let fileData = new DataTransfer()
+
+    lib.fileInputOnChange(hiddenButton, (e, canvas, ctx, img, file) => {
+        canvas.height = img.height
+        canvas.width = img.width
+        ctx.drawImage(img, 0, 0)
+        let div = document.createElement('div')
+        div.setAttribute('key', files.length)
+        div.classList.add('flex', 'object-fit', 'overflow-hidden')
+        div.appendChild(canvas)
+        files.push({
+            'key': files.length,
+            'file': file
+        })
+        fileData.items.add(file)
+        hiddenButton.value = ''
+        div.addEventListener('click', (e) => {
+            div.remove()
+            let key = div.getAttribute('key')
+            for (let i = 0; i < files.length; i++) {
+                let f = files[i]
+                if (f.key == key) {
+                    files.splice(i, 1)
+                }
+            }
+        })
+        photoContainer.appendChild(div)
+        hiddenButton.files = fileData.files
+    })
+
+    // hiddenButton.addEventListener('change', (e) => {
+    //     let { reason, name, file } = lib.formInputs(form)
+    //     let photo = file.files[0]
+    //     let canvas = document.createElement('canvas')
+    //     form.appendChild(canvas)
+    //     let reader = new FileReader()
+    //     reader.onload = function(event) {
+    //         const img = new Image()
+    //         img.onload = function() {
+    //             let ctx = canvas.getContext('2d')
+    //             img.width = canvas.width
+    //             img.height = canvas.height
+    //             ctx.drawImage(img, 0, 0)
+    //         }
+    //         img.src = event.target.result
+    //     }
+    //     reader.readAsDataURL(photo)
+    // })
 })
+
+
+
 app.at("/about", () => {})
 
 window.addEventListener('DOMContentLoaded', async () => {
+    await app.run()
+})
+
+window.addEventListener('htmx:afterRequest', async () => {
     await app.run()
 })
 
