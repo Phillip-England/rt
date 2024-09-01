@@ -4,10 +4,16 @@ github.com/Phillip-England/gsc v0.0.12 h1:He/7vRVc0T343k2af9SXsuCMhBxw4yHOur8gVG
 github.com/Phillip-England/gsc v0.0.12/go.mod h1:n0HyRMjOii26moYd0oNS79RGzr4KsQJlDt/jjWhfkAM=
 github.com/Phillip-England/gsc v0.0.13 h1:HAsdmrzkPaupZ1nNjAphv+MinuvVjvILsCW/a5KrAmA=
 github.com/Phillip-England/gsc v0.0.13/go.mod h1:TnHakFWplBrOorJg1NO9kCwBFuoCiwiJcVjfuN9NVT8=
+github.com/Phillip-England/gsc v0.0.14 h1:IWBNzLwy1cR9EB0Rp8zXvr8TBUWc7QIfx0nqMYYWOUI=
+github.com/Phillip-England/gsc v0.0.14/go.mod h1:TnHakFWplBrOorJg1NO9kCwBFuoCiwiJcVjfuN9NVT8=
+github.com/Phillip-England/gsc v0.0.15 h1:4YimmvfUxlNn3JuY3yDi/ZktS5dIhkbdTPS980+CWBQ=
+github.com/Phillip-England/gsc v0.0.15/go.mod h1:TnHakFWplBrOorJg1NO9kCwBFuoCiwiJcVjfuN9NVT8=
 github.com/Phillip-England/vbf v0.0.7 h1:11ZFO5YiuubcGjlzgE4fz5QmxF0WlOZ4Vmqhoa+ox3w=
 github.com/Phillip-England/vbf v0.0.7/go.mod h1:HZ2szKq1CqW+OmvtNZS/0hWL5nv7AFfyQ8o4jWd+3ts=
 github.com/Phillip-England/vbf v0.0.8 h1:sVezXcNRuYWufW1EDP7DDedymooRn2iOSWUlD9GMC0w=
 github.com/Phillip-England/vbf v0.0.8/go.mod h1:HZ2szKq1CqW+OmvtNZS/0hWL5nv7AFfyQ8o4jWd+3ts=
+github.com/Phillip-England/vbf v0.0.9 h1:MMMx+hM+DEpashfx/uUyqAwBQRu6gXJ1k2MCtj4ruFc=
+github.com/Phillip-England/vbf v0.0.9/go.mod h1:HZ2szKq1CqW+OmvtNZS/0hWL5nv7AFfyQ8o4jWd+3ts=
 github.com/a-h/templ v0.2.771 h1:4KH5ykNigYGGpCe0fRJ7/hzwz72k3qFqIiiLLJskbSo=
 github.com/a-h/templ v0.2.771/go.mod h1:lq48JXoUvuQrU0VThrK31yFwdRjTCnIE5bcPCM9IP1w=
 github.com/alecthomas/assert/v2 v2.7.0 h1:QtqSACNS3tF7oasA8CU6A6sXZSBDqnm7RfpLl9bZqbE=

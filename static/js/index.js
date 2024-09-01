@@ -117,8 +117,13 @@ class Xerus {
     }
 
     at(path, handler, ...middleware) {
+        middleware.push(...this.prefixGroups['GLOBAL'])
         for (const key in this.prefixGroups) {
-            if (path.startsWith(key)) {
+            if (key == "/" && path.count('/') == 1 && path[0] == '/') {
+                middleware.push(...this.prefixGroups[key])
+                break
+            }
+            if (path.startsWith(key) && key != "/") {
                 middleware.push(...this.prefixGroups[key])
                 break
             }
@@ -198,16 +203,11 @@ function toggleNav(next) {
     }
 } 
 
-// app.use("/", toggleNav)
+
+app.use("GLOBAL")
 
 app.at("/", () => {
-    let { form, uploadButton, hiddenButton } = lib.scan('#receipt-form', 'form')
-    uploadButton.addEventListener('click', () => {
-        hiddenButton.click()
-    })
-    form.addEventListener('submit', (e) => {
-        console.log(form)
-    })
+
 })
 app.at("/about", () => {})
 

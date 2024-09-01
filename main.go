@@ -22,14 +22,14 @@ func IconX() g.Component {
 func FormTextInput(label string) g.Component {
 	return g.Div().Class("flex flex-col gap-2").In(
 		g.Label().Class("text-sm").Text(label),
-		g.Input().Class("border rounded outline-none text-sm px-2 py-1 focus:border-gray-300").Type("text"),
+		g.Input().Class("border rounded outline-none text-sm px-2 py-1 focus:border-gray-500").Type("text"),
 	)
 }
 
 func FormTextArea(label string) g.Component {
 	return g.Div().Class("flex flex-col gap-2").In(
 		g.Label().Class("text-sm").Text(label),
-		g.Textarea().Class("border rounded text-sm px-2 py-1").Attr("rows", "4"),
+		g.Textarea().Class("border rounded outline-none text-sm px-2 py-1 focus:border-gray-500").Attr("rows", "4"),
 	)
 }
 
@@ -37,31 +37,59 @@ func FormTitle(text string) g.Component {
 	return g.H2().Class("text-xl font-bold").Text(text)
 }
 
-func Layout() g.Component {
+func Layout(isOpen bool) g.Component {
 	return g.HTMLDoc().In(
 		g.Head().In(
 			g.Meta().Name("viewport").Content("width=device-width, initial-scale=1.0"),
 			g.Link().Rel("stylesheet").Href("/static/css/output.css"),
 			g.Script().Src("/static/js/index.js"),
+			g.Script().Src("https://unpkg.com/htmx.org@2.0.2"),
 			g.Title().Text("Receipt Tracker"),
 		),
-		g.Body().In(
+		g.Body().Attr("hx-boost", "true").In(
 			g.Div().Class("grid grid-cols-8").In(
-				g.Header().Class("border-b h-[85px] p-4 flex flex-row justify-between items-center col-span-8").In(
+				g.Header().Class("border-b h-[85px] p-4 flex flex-row justify-between items-center col-span-8 z-40 bg-white").In(
 					g.Div().Class("flex flex-col gap-1").In(
 						g.H1().Class("text-xl font-bold").Text("Receipt Tracker"),
 						g.P().Class("text-sm").Text("Where's my money?"),
+					),
+					g.Div().Class("flex items-center").In(
+						g.IfElse(isOpen,
+							g.A().Href("/").In(
+								IconX(),
+							),
+							g.A().Href(`/?open=true`).In(
+								IconBars(),
+							),
+						),
 					),
 				),
 				g.Main().Class("col-start-1 col-end-9 p-2").In(
 					g.Form().Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("p-4 rounded flex flex-col gap-8").In(
 						FormTitle("Upload Receipts"),
-						FormTextInput("First Name"),
-						FormTextInput("Last Name"),
+						FormTextInput("Name"),
 						FormTextArea("What are these expenses for?"),
 						g.Input().Type("button").ID("upload-button").Class("bg-light-blue text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
 						g.Input().Type("file").Class("hidden").ID("hidden-button"),
 						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
+					),
+				),
+				g.If(isOpen,
+					g.A().Href("/").In(
+						g.Div().Class("absolute top-0 h-full w-full bg-black z-30 opacity-50"),
+					),
+				),
+				g.If(isOpen,
+					g.Nav().Class("absolute w-4/5 border-r h-full z-30 bg-white").In(
+						g.Div().Class("h-[85px]"),
+						g.Ul().Class("flex flex-col gap-2 p-2 w-full text-sm").In(
+							g.Li().Class("flex").In(
+								g.A().Class("p-4 w-full border rounded").Href("/").Text("Home"),
+							),
+							g.Li().Class("flex").In(
+								g.A().Class("p-4 w-full border rounded").Href("/about").Text("About"),
+							),
+						),
 					),
 				),
 			),
@@ -74,7 +102,7 @@ func main() {
 	mux, gCtx := vbf.VeryBestFramework()
 
 	vbf.AddRoute("GET /", mux, gCtx, func(w http.ResponseWriter, r *http.Request) {
-		vbf.WriteHTML(w, Layout().ToString())
+		vbf.WriteHTML(w, Layout(vbf.ParamIs(r, "open", "true")).ToString())
 	}, vbf.MwLogger)
 
 	err := vbf.Serve(mux, "8080")

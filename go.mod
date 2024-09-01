@@ -3,8 +3,8 @@ module rt
 go 1.23.0
 
 require (
-	github.com/Phillip-England/gsc v0.0.13
-	github.com/Phillip-England/vbf v0.0.8
+	github.com/Phillip-England/gsc v0.0.15
+	github.com/Phillip-England/vbf v0.0.9
 )
 
 require (
