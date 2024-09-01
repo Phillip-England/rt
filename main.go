@@ -47,7 +47,7 @@ func Layout(isOpen bool) g.Component {
 			g.Title().Text("Receipt Tracker"),
 		),
 		g.Body().Attr("hx-boost", "true").In(
-			g.Div().Class("grid grid-cols-8").In(
+			g.Div().Class("flex flex-col").In(
 				g.Header().Class("border-b h-[85px] p-4 flex flex-row justify-between items-center col-span-8 z-40 bg-white").In(
 					g.Div().Class("flex flex-col gap-1").In(
 						g.H1().Class("text-xl font-bold").Text("Receipt Tracker"),
@@ -64,16 +64,16 @@ func Layout(isOpen bool) g.Component {
 						),
 					),
 				),
-				g.Main().Class("col-start-1 col-end-9 p-2").In(
-					g.Form().Attr("action", "/").Attr("scan", "#upload-button #hidden-button #photo-container").ID("receipt-form").Class("p-4 rounded flex flex-col gap-8").In(
+				g.Main().Class("flex flex-col items-center md:p-12").In(
+					g.Form().Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4 max-w-[500px]").In(
 						FormTitle("Upload Receipts"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
 						g.Input().Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
 						g.Input().Type("file").Class("hidden").ID("hidden-button").Name("file"),
 						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
-						g.Div().Class("flex flex-wrap gap-8").ID("photo-container"),
 					),
+					g.Div().Class("flex flex-wrap gap-8 p-4 w-full").ID("photo-container"),
 				),
 				g.If(isOpen,
 					g.A().Href("/").In(
@@ -94,6 +94,7 @@ func Layout(isOpen bool) g.Component {
 					),
 				),
 			),
+			g.Script().Text("app.run()"),
 		),
 	)
 }

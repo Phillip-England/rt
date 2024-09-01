@@ -142,7 +142,6 @@ class XerusLib {
 
     fileInputOnChange(fileInput, onChange) {
         fileInput.addEventListener('change', (e) => {
-            // e.preventDefault()
             let input = e.target
             let file = input.files[0]
             let canvas = document.createElement('canvas')
@@ -263,7 +262,9 @@ function toggleNav(next) {
 app.use("GLOBAL")
 
 app.at("/", () => {
-    let {form, uploadButton, hiddenButton, photoContainer} = lib.scan("#receipt-form", "form")
+
+    let {form, uploadButton, hiddenButton} = lib.scan("#receipt-form", "form")
+    let photoContainer = lib.qs('#photo-container')
 
     uploadButton.addEventListener('click', () => {
         hiddenButton.click()
@@ -278,7 +279,16 @@ app.at("/", () => {
         ctx.drawImage(img, 0, 0)
         let div = document.createElement('div')
         div.setAttribute('key', files.length)
-        div.classList.add('flex', 'object-fit', 'overflow-hidden')
+        div.classList.add('flex', 'object-fit', 'overflow-x-scroll', 'h-fit', 'relative')
+        let close = document.createElement('div')
+        close.classList.add('left-0', 'top-0', 'absolute',  'z-40', 'cursor-pointer', 'p-2')
+        close.innerHTML = `
+            <svg class="w-16 h-16 text-white bg-black rounded-full" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            </svg>
+
+        `
+        div.appendChild(close)
         div.appendChild(canvas)
         files.push({
             'key': files.length,
@@ -324,13 +334,6 @@ app.at("/", () => {
 
 app.at("/about", () => {})
 
-window.addEventListener('DOMContentLoaded', async () => {
-    await app.run()
-})
-
-window.addEventListener('htmx:afterRequest', async () => {
-    await app.run()
-})
 
 
 
