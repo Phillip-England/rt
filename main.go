@@ -42,7 +42,8 @@ func Layout(isOpen bool) g.Component {
 		g.Head().In(
 			g.Meta().Name("viewport").Content("width=device-width, initial-scale=1.0"),
 			g.Link().Rel("stylesheet").Href("/static/css/output.css"),
-			g.Script().Src("/static/js/index.js"),
+			g.Script().Src("/static/js/rat.js"),
+			g.Script().Src("/static/js/htpl.js"),
 			g.Script().Src("https://unpkg.com/htmx.org@2.0.2"),
 			g.Title().Text("Receipt Tracker"),
 		),
@@ -69,8 +70,8 @@ func Layout(isOpen bool) g.Component {
 						FormTitle("Upload Receipts"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
-						g.Input().Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
-						g.Input().Type("file").Class("hidden").ID("hidden-button").Name("file"),
+						g.Input().Attr("ht-click-proxy", "#hidden-file-input").Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
+						g.Input().Type("file").Class("hidden").ID("hidden-file-input").Name("file"),
 						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
 					),
 					g.Div().Class("flex flex-wrap gap-8 p-4 w-full").ID("photo-container"),
@@ -94,7 +95,7 @@ func Layout(isOpen bool) g.Component {
 					),
 				),
 			),
-			g.Script().Text("app.run()"),
+			g.Script().Text(`htpl.hook()`),
 		),
 	)
 }
