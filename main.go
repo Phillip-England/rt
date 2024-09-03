@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	g "github.com/Phillip-England/gsc"
@@ -74,8 +75,8 @@ func Layout(isOpen bool) g.Component {
 						IconX().ID("header-x").Class("hidden"),
 					),
 				),
-				g.Main().Class("flex flex-col items-center md:p-12").In(
-					g.Form().Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:flex:0.5").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4 max-w-[500px]").In(
+				g.Main().Class("flex flex-col items-center").In(
+					g.Form().Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:cursor-pointer flex:0.5").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
 						FormTitle("Upload Receipts"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
@@ -83,7 +84,7 @@ func Layout(isOpen bool) g.Component {
 						g.Input().Type("file").Class("hidden").ID("hidden-file-input").Name("file").Attr("multiple", ""),
 						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
 					),
-					g.Div().Class("flex flex-col gap-8 p-4 w-full").ID("photo-container"),
+					g.Div().Class("flex flex-wrap flex-start p-4 w-full overflow-hidden gap-4 items-start").ID("photo-container"),
 				),
 				g.Div().Of(ToggleNav).ID("nav-overlay").Class("absolute top-0 h-full w-full bg-black z-30 opacity-50 hidden"),
 				g.Nav().ID("nav-menu").Class("absolute w-4/5 border-r h-full z-30 bg-white hidden").In(
@@ -109,6 +110,38 @@ func main() {
 	vbf.AddRoute("GET /", mux, gCtx, func(w http.ResponseWriter, r *http.Request) {
 		vbf.WriteHTML(w, Layout(vbf.ParamIs(r, "open", "true")).ToString())
 	}, vbf.MwLogger)
+
+	vbf.AddRoute("POST /", mux, gCtx, func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseMultipartForm(10 << 20)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
+
+		files := r.MultipartForm.File["file"]
+		if len(files) == 0 {
+			http.Error(w, "No files uploaded", http.StatusBadRequest)
+			return
+		}
+
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Unable to open the file", http.StatusBadRequest)
+				return
+			}
+			defer file.Close()
+
+			fmt.Printf("Received file: %s (%d bytes)\n", fileHeader.Filename, fileHeader.Size)
+
+		}
+
+		// Redirect or respond as needed
+		w.Header().Set("location", "/")
+		w.WriteHeader(303)
+	})
 
 	err := vbf.Serve(mux, "8080")
 	if err != nil {

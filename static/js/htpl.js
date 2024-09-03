@@ -68,7 +68,7 @@ htpl.add('ht-multi-photo-form', (element, attr) => {
         }
         let fileInputSelector = parts[0]
         let photoContainerSelector = parts[1]
-        let canvasWrapperClasses = ""
+        let canvasWrapperClasses = []
         if (parts[2]) {
             canvasWrapperClasses = parts[2].split(" ")
         }
@@ -102,6 +102,23 @@ htpl.add('ht-multi-photo-form', (element, attr) => {
         }
     }
 
+    function hookDeleteOnDiv(div, fileInput) {
+        div.addEventListener('click', () => {
+            let newFiles = new DataTransfer()
+            let found = false
+            for (let i = 0; i < fileInput.files.length; i++) {
+                let f = fileInput.files[i]
+                if (f.name == div.getAttribute('key') && found == false) {
+                    found = true
+                    div.remove()
+                    continue
+                }
+                newFiles.items.add(f)
+            }
+            fileInput.files = newFiles.files
+        })
+    }
+
     function draw(canvas, div, photoContainer, ctx, img) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         div.appendChild(canvas)
@@ -112,101 +129,36 @@ htpl.add('ht-multi-photo-form', (element, attr) => {
 
     fileInput.addEventListener('change', (e) => {
         e.preventDefault()
-        let file = fileInput.files[0]
-        if (!file) {
-            return
-        }
-        let reader = new FileReader()
-        if (!reader) {
-            return
-        }
-        reader.onload = function(event) {
-            let img = new Image()
-            if (!img) {
-                return
+
+        for (let i = 0; i < fileInput.files.length; i++) {
+            let file = fileInput.files[i]
+            if (!file) {
+                continue
             }
-            img.onload = function() {
-                data.items.add(file)
-                fileInput.files = data.files
-                let div = getDiv(file, canvasWrapperClasses)
-                let { canvas, ctx } = getCanvas(scaleRatio, img)
-                draw(canvas, div, photoContainer, ctx, img)
-                div.addEventListener('click', () => {
-                    let newFiles = new DataTransfer()
-                    for (let i = 0; i < fileInput.files.length; i++) {
-                        let f = fileInput.files[i]
-                        let found = false
-                        if (f.name == div.getAttribute('key') && found == false) {
-                            found = true
-                            div.remove()
-                            continue
-                        }
-                        newFiles.items.add(f)
-                    }
-                    fileInput.files = newFiles.files
-                })
+            let reader = new FileReader()
+            if (!reader) {
+                continue
             }
-            img.src = event.target.result
+            reader.onload = function(event) {
+                let img = new Image()
+                if (!img) {
+                    return
+                }
+                img.onload = function() {
+                    data.items.add(file)
+                    fileInput.files = data.files
+                    let div = getDiv(file, canvasWrapperClasses)
+                    hookDeleteOnDiv(div, fileInput)
+                    let { canvas, ctx } = getCanvas(scaleRatio, img)
+                    draw(canvas, div, photoContainer, ctx, img)
+                }
+                img.src = event.target.result
+            }
+            reader.readAsDataURL(file)
         }
-        reader.readAsDataURL(file)
     })
-
-
-
-    // let selectedFiles = []
-    // fileInput.addEventListener('change', (e) => {
-    //     e.preventDefault()
-    //     let file = fileInput.files[0]
-    //     selectedFiles.push({
-    //         "key": selectedFiles.length,
-    //         "file": file
-    //     })
-    //     let canvas = document.createElement('canvas')
-    //     let div = document.createElement('div')
-    //     div.setAttribute('key', selectedFiles.length-1)
-    //     for (let i = 0; i < canvasWrapperClasses.length; i++) {
-    //         let cls = canvasWrapperClasses[i]
-    //         div.classList.add(cls)
-    //     }
-    //     div.addEventListener('click', () => {
-    //         div.remove()
-    //         let dataTransfer = new DataTransfer()
-    //         for (let i = 0; i < selectedFiles.length; i++) {
-    //             let f = selectedFiles[i]
-    //             let key = f.key
-    //             let file = f.file
-    //             let divKey = div.getAttribute('key')
-    //             console.log(key, divKey)
-    //             if (key == divKey) {
-    //                 selectedFiles.splice(i, 1)
-    //                 break
-    //             }
-    //             dataTransfer.items.add(file)
-    //         }
-    //         fileInput.files = dataTransfer.files
-    //     })
-    //     let reader = new FileReader()
-    //     reader.onload = function(event) {
-    //         let img = new Image()
-    //         img.onload = function() {
-    //             canvas.height = img.height * scaleRatio
-    //             canvas.width = img.width * scaleRatio
-    //             let ctx = canvas.getContext('2d')
-    //             ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    //             div.appendChild(canvas)
-    //             photoContainer.appendChild(div)
-    //         }
-    //         img.src = event.target.result
-    //     }
-    //     reader.readAsDataURL(file)
-    //     let dataTransfer = new DataTransfer()
-    //     for (let i = 0; i < selectedFiles.length; i++) {
-    //         let f = selectedFiles[i].file
-    //         dataTransfer.items.add(file)
-    //     }
-    //     fileInput.files = dataTransfer.files
-    // })
 })
+
 
 window.addEventListener('DOMContentLoaded', () => {
     htpl.hook()
