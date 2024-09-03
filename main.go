@@ -6,6 +6,7 @@ import (
 
 	g "github.com/Phillip-England/gsc"
 	"github.com/Phillip-England/vbf"
+	"github.com/joho/godotenv"
 )
 
 //=================================
@@ -106,6 +107,8 @@ func Layout(isOpen bool) g.Component {
 func main() {
 
 	mux, gCtx := vbf.VeryBestFramework()
+
+	_ = godotenv.Load()
 
 	vbf.AddRoute("GET /", mux, gCtx, func(w http.ResponseWriter, r *http.Request) {
 		vbf.WriteHTML(w, Layout(vbf.ParamIs(r, "open", "true")).ToString())
