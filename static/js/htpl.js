@@ -164,6 +164,11 @@ htpl.add('ht-form-file-limit', (element, attr) => {
 });
 
 
+htpl.add('ht-forward', (element, attr) => {
+    console.log(element, attr)
+})
+
+
 window.addEventListener('DOMContentLoaded', () => {
     htpl.hook()
 })

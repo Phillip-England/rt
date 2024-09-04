@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
 
 	g "github.com/Phillip-England/gsc"
 	"github.com/Phillip-England/vbf"
 	"github.com/joho/godotenv"
+	"gopkg.in/gomail.v2"
 )
 
 //=================================
@@ -50,7 +54,7 @@ func FormTitle(text string) g.Component {
 }
 
 //=================================
-// SHARED BEHAVIOR
+// SHARED BEHAVIOR / EVENTS
 //=================================
 
 func ToggleNav(c g.Component) g.Component {
@@ -83,13 +87,13 @@ func Layout(isOpen bool) g.Component {
 					),
 				),
 				g.Main().Class("flex flex-col items-center").In(
-					g.Form().Attr("ht-form-file-limit", "#hidden-file-input:#form-err:10").Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:#photo-undo:200:cursor-pointer flex").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
+					g.Form().Attr("ht-form-file-limit", "#hidden-file-input:#form-err:50").Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:#photo-undo:200:cursor-pointer flex").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
 						FormTitle("Upload Receipts"),
 						g.P().ID("form-err").Class("text-red-500 text-sm"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
 						g.Div().Class("flex flex-row justify-between").In(
-							g.Input().Attr("ht-click-proxy", "#hidden-file-input").Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
+							g.Input().Attr("ht-click-proxy", "#hidden-file-input").Type("button").ID("upload-button").Class("bg-blue-700 cursor-pointer text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
 							g.Div().ID("photo-undo").Class("flex items-center pr-4 cursor-pointer").In(
 								IconUndo(),
 							),
@@ -140,6 +144,22 @@ func main() {
 			return
 		}
 
+		from := os.Getenv("EMAIL")
+		password := os.Getenv("EMAIL_PASSWORD")
+		to := os.Getenv("EMAIL_TO")
+
+		// Email subject and body
+		subject := "Files Uploaded"
+		body := "Hello, attached are the files you uploaded."
+
+		// Set up the email message
+		m := gomail.NewMessage()
+		m.SetHeader("From", from)
+		m.SetHeader("To", to)
+		m.SetHeader("Subject", subject)
+		m.SetBody("text/plain", body)
+
+		// Attach each file to the email
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()
 			if err != nil {
@@ -151,8 +171,22 @@ func main() {
 
 			fmt.Printf("Received file: %s (%d bytes)\n", fileHeader.Filename, fileHeader.Size)
 
+			// Attach the file to the email
+			m.Attach(fileHeader.Filename, gomail.SetCopyFunc(func(w io.Writer) error {
+				_, err := io.Copy(w, file)
+				return err
+			}))
 		}
 
+		// Set up the SMTP dialer
+		d := gomail.NewDialer(os.Getenv("EMAIL_HOST"), 587, from, password)
+
+		// Send the email
+		if err := d.DialAndSend(m); err != nil {
+			log.Fatalf("Could not send email: %v", err)
+		}
+
+		log.Println("Email sent successfully!")
 		// Redirect or respond as needed
 		w.Header().Set("location", "/")
 		w.WriteHeader(303)
