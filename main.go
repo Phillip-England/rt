@@ -25,6 +25,12 @@ func IconX() g.Component {
 	)
 }
 
+func IconUndo() g.Component {
+	return g.Svg().Aria("hidden", "true").Xmlns("http://www.w3.org/2000/svg").Height("24").Width("24").Fill("none").ViewBox("0 0 24 24").In(
+		g.Path().Stroke("currentColor").StrokeLineCap("round").StrokeLineJoin("round").StrokeWidth("2").D("M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4"),
+	)
+}
+
 func FormTextInput(label string, name string) g.Component {
 	return g.Div().Class("flex flex-col gap-2").In(
 		g.Label().Class("text-sm").Text(label),
@@ -77,11 +83,16 @@ func Layout(isOpen bool) g.Component {
 					),
 				),
 				g.Main().Class("flex flex-col items-center").In(
-					g.Form().Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:cursor-pointer flex:0.5").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
+					g.Form().Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:#photo-undo:200:cursor-pointer flex").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
 						FormTitle("Upload Receipts"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
-						g.Input().Attr("ht-click-proxy", "#hidden-file-input").Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
+						g.Div().Class("flex flex-row justify-between").In(
+							g.Input().Attr("ht-click-proxy", "#hidden-file-input").Type("button").ID("upload-button").Class("bg-blue-700 text-white rounded w-fit text-sm py-1 px-4").Value("select file"),
+							g.Div().ID("photo-undo").Class("flex items-center pr-4 cursor-pointer").In(
+								IconUndo(),
+							),
+						),
 						g.Input().Type("file").Class("hidden").ID("hidden-file-input").Name("file").Attr("multiple", ""),
 						g.Button().Class("bg-black py-2 px-4 rounded text-white text-sm").Text("Submit"),
 					),

@@ -61,102 +61,78 @@ htpl.add('ht-mass-toggle', (element, attr) => {
 
 htpl.add('ht-multi-photo-form', (element, attr) => {
 
-    function extract() {
-        let parts = attr.split(':')
-        if (parts.length < 2) {
-            console.error('ht-multi-photo-form does not have enough args')
-        }
-        let fileInputSelector = parts[0]
-        let photoContainerSelector = parts[1]
-        let canvasWrapperClasses = []
-        if (parts[2]) {
-            canvasWrapperClasses = parts[2].split(" ")
-        }
-        let scaleRatio = 1
-        if (parts[3]) {
-            scaleRatio = Number(parts[3])
-        }
-        let fileInput = document.querySelector(fileInputSelector)
-        let photoContainer = document.querySelector(photoContainerSelector)
-        let data = new DataTransfer()
-        return {fileInput, photoContainer, scaleRatio, canvasWrapperClasses, data}
+    // extracting attr data
+    let parts = attr.split(':')
+    let divClasses = parts[4]
+    let fileInput = document.querySelector(parts[0])
+    let photoContainer = document.querySelector(parts[1])
+    let imgWidth = parts[3]
+    let undoIcon = document.querySelector(parts[2])
+
+    // classes are optional, all other inputs are not
+    if (divClasses) {
+        divClasses = divClasses.split(' ')
     }
 
-    function getDiv(file, canvasWrapperClasses) {
-        let div = document.createElement('div')
-        div.setAttribute('key', file.name)
-        for (let i = 0; i < canvasWrapperClasses.length; i++) {
-            let cls = canvasWrapperClasses[i]
-            div.classList.add(cls)
+    // used to update the fileInputs files by extracting from elements in photo container
+    function updateFiles(fileInput, photoContainer) {
+        let updatedFiles = new DataTransfer()
+        let allDivs = photoContainer.querySelectorAll('div')
+        for (let i = 0; i < allDivs.length; i++) {
+            let currentDiv = allDivs[i]
+            updatedFiles.items.add(currentDiv.file)
         }
-        return div
+        fileInput.files = updatedFiles.files  
     }
 
-    function getCanvas(scaleRatio, img) {
-        let canvas = document.createElement('canvas')
-        canvas.height = img.height * scaleRatio
-        canvas.width = img.width * scaleRatio
-        return {
-            'canvas': canvas,
-            'ctx': canvas.getContext('2d')
+    // event handler for removing a file
+    undoIcon.addEventListener('click', () => {
+        let photoContainerElements = photoContainer.children
+        if (photoContainerElements.length == 0) {
+            return
         }
-    }
-
-    function hookDeleteOnDiv(div, fileInput) {
-        div.addEventListener('click', () => {
-            let newFiles = new DataTransfer()
-            let found = false
-            for (let i = 0; i < fileInput.files.length; i++) {
-                let f = fileInput.files[i]
-                if (f.name == div.getAttribute('key') && found == false) {
-                    found = true
-                    div.remove()
-                    continue
-                }
-                newFiles.items.add(f)
-            }
-            fileInput.files = newFiles.files
-        })
-    }
-
-    function draw(canvas, div, photoContainer, ctx, img) {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        div.appendChild(canvas)
-        photoContainer.appendChild(div)
-    }
-
-    let {fileInput, photoContainer, scaleRatio, canvasWrapperClasses, data} = extract()
-
+        photoContainerElements[photoContainerElements.length-1].remove()
+        updateFiles(fileInput, photoContainer)
+    })
+    
+    // event handler for uploading a new file
     fileInput.addEventListener('change', (e) => {
         e.preventDefault()
+        let file = fileInput.files[0]
+        let reader = new FileReader()
+        reader.onload = function(event) {
+            let img = new Image()
+            img.onload = function() {
 
-        for (let i = 0; i < fileInput.files.length; i++) {
-            let file = fileInput.files[i]
-            if (!file) {
-                continue
+                // getting our elements and context
+                let div = document.createElement('div')
+                let canvas = document.createElement('canvas')
+                let ctx = canvas.getContext('2d')
+
+                // adding classes to the div
+                for (let i = 0; i < divClasses.length; i++) { div.classList.add(divClasses[i]) }
+
+                // sizing up our image and canvas
+                let imgHeight = (img.height / img.width) * imgWidth
+                canvas.height = imgHeight
+                canvas.width = imgWidth
+
+                // drawing on our canvas and inserting in the DOM
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                div.appendChild(canvas)
+                photoContainer.appendChild(div)
+                div.file = file
+
+                // updating files
+                updateFiles(fileInput, photoContainer)
+
+
             }
-            let reader = new FileReader()
-            if (!reader) {
-                continue
-            }
-            reader.onload = function(event) {
-                let img = new Image()
-                if (!img) {
-                    return
-                }
-                img.onload = function() {
-                    data.items.add(file)
-                    fileInput.files = data.files
-                    let div = getDiv(file, canvasWrapperClasses)
-                    hookDeleteOnDiv(div, fileInput)
-                    let { canvas, ctx } = getCanvas(scaleRatio, img)
-                    draw(canvas, div, photoContainer, ctx, img)
-                }
-                img.src = event.target.result
-            }
-            reader.readAsDataURL(file)
+            img.src = event.target.result
         }
+        reader.readAsDataURL(file)
     })
+
 })
 
 
