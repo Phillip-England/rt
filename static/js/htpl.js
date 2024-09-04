@@ -98,42 +98,70 @@ htpl.add('ht-multi-photo-form', (element, attr) => {
     // event handler for uploading a new file
     fileInput.addEventListener('change', (e) => {
         e.preventDefault()
-        let file = fileInput.files[0]
-        let reader = new FileReader()
-        reader.onload = function(event) {
-            let img = new Image()
-            img.onload = function() {
+        for (let i = 0; i < fileInput.files.length; i++) {
+            let reader = new FileReader()
+            let file = fileInput.files[i]
+            reader.onload = function(event) {
 
-                // getting our elements and context
-                let div = document.createElement('div')
-                let canvas = document.createElement('canvas')
-                let ctx = canvas.getContext('2d')
+                let img = new Image()
+                img.onload = function() {
 
-                // adding classes to the div
-                for (let i = 0; i < divClasses.length; i++) { div.classList.add(divClasses[i]) }
+                    // getting our elements and context
+                    let div = document.createElement('div')
+                    let canvas = document.createElement('canvas')
+                    let ctx = canvas.getContext('2d')
 
-                // sizing up our image and canvas
-                let imgHeight = (img.height / img.width) * imgWidth
-                canvas.height = imgHeight
-                canvas.width = imgWidth
+                    // adding classes to the div
+                    for (let i = 0; i < divClasses.length; i++) { div.classList.add(divClasses[i]) }
 
-                // drawing on our canvas and inserting in the DOM
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-                div.appendChild(canvas)
-                photoContainer.appendChild(div)
-                div.file = file
+                    // sizing up our image and canvas
+                    let imgHeight = (img.height / img.width) * imgWidth
+                    canvas.height = imgHeight
+                    canvas.width = imgWidth
 
-                // updating files
-                updateFiles(fileInput, photoContainer)
+                    // drawing on our canvas and inserting in the DOM
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                    div.appendChild(canvas)
+                    photoContainer.appendChild(div)
+                    div.file = file
+
+                    // updating files
+                    updateFiles(fileInput, photoContainer)
 
 
+                }
+                img.src = event.target.result
             }
-            img.src = event.target.result
+            reader.readAsDataURL(file)
         }
-        reader.readAsDataURL(file)
     })
 
 })
+
+
+htpl.add('ht-form-file-limit', (element, attr) => {
+
+    let parts = attr.split(':');
+    let input = document.querySelector(parts[0]);
+    let err = document.querySelector(parts[1]);
+    let maxSize = parseFloat(parts[2])
+
+    element.addEventListener('submit', (e) => {
+        let files = input.files;
+        let size = 0;
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            size += file.size; 
+        }
+        let sizeInMB = size / (1024 * 1024); 
+        if (sizeInMB > maxSize) {
+            e.preventDefault(); 
+            err.textContent = `exceeded max upload size of ${maxSize} MB`;
+        } else {
+            err.textContent = ''; 
+        }
+    });
+});
 
 
 window.addEventListener('DOMContentLoaded', () => {

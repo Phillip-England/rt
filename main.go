@@ -83,8 +83,9 @@ func Layout(isOpen bool) g.Component {
 					),
 				),
 				g.Main().Class("flex flex-col items-center").In(
-					g.Form().Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:#photo-undo:200:cursor-pointer flex").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
+					g.Form().Attr("ht-form-file-limit", "#hidden-file-input:#form-err:10").Attr("ht-multi-photo-form", "#hidden-file-input:#photo-container:#photo-undo:200:cursor-pointer flex").Attr("enctype", "multipart/form-data").Attr("method", "POST").Attr("action", "/").Attr("scan", "#upload-button #hidden-button").ID("receipt-form").Class("rounded flex flex-col w-full gap-8 p-4").In(
 						FormTitle("Upload Receipts"),
+						g.P().ID("form-err").Class("text-red-500 text-sm"),
 						FormTextInput("Name", "name"),
 						FormTextArea("What are these expenses for?", "reason"),
 						g.Div().Class("flex flex-row justify-between").In(
